@@ -1,49 +1,43 @@
+// lib/widgets/loading_indicator.dart
 import 'package:flutter/material.dart';
 
-class LoadingOverlay extends StatelessWidget {
-  final bool isLoading;
-  final Widget child;
-
-  const LoadingOverlay({
-    super.key,
-    required this.isLoading,
-    required this.child,
-  });
+class LoadingIndicator extends StatelessWidget {
+  const LoadingIndicator({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        child,
-        if (isLoading)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: _AnimatedLoadingIndicator(),
-              ),
-            ),
-          ),
-      ],
+    return Container(
+      color: Colors.black.withOpacity(0.4),
+      child: const Center(
+        child: SizedBox(
+          width: 60,
+          height: 60,
+          child: _GradientSpinner(),
+        ),
+      ),
     );
   }
 }
 
-class _AnimatedLoadingIndicator extends StatefulWidget {
-  const _AnimatedLoadingIndicator();
+class _GradientSpinner extends StatefulWidget {
+  const _GradientSpinner();
 
   @override
-  State<_AnimatedLoadingIndicator> createState() => _AnimatedLoadingIndicatorState();
+  State<_GradientSpinner> createState() => _GradientSpinnerState();
 }
 
-class _AnimatedLoadingIndicatorState extends State<_AnimatedLoadingIndicator>
+class _GradientSpinnerState extends State<_GradientSpinner>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-  AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat();
-  late final Animation<double> _animation = Tween(begin: 0.8, end: 1.2).animate(CurvedAnimation(
-    parent: _controller,
-    curve: Curves.easeInOut,
-  ));
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+  }
 
   @override
   void dispose() {
@@ -53,11 +47,35 @@ class _AnimatedLoadingIndicatorState extends State<_AnimatedLoadingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _animation,
-      child: const CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
-        strokeWidth: 5,
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, child) {
+        return Transform.rotate(
+          angle: _controller.value * 6.3,
+          child: child,
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const SweepGradient(
+            colors: [
+              Colors.blueAccent,
+              Colors.lightBlue,
+              Colors.cyan,
+              Colors.blueAccent,
+            ],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Container(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }

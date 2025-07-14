@@ -1,41 +1,68 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// lib/services/auth_service.dart
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
+import 'package:uuid/uuid.dart';
+import '../models/user_model.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Future<String?> register({
-    required String name,
-    required String email,
+  Future<String?> registerUser({
+    required String username,
     required String password,
   }) async {
-    try {
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    final usernameTaken = await _checkUsernameExists(username);
+    if (usernameTaken) return 'Username already taken';
 
-      await credential.user?.updateDisplayName(name);
-      return null; // успех
-    } on FirebaseAuthException catch (e) {
-      return e.message; // ошибка как строка
+    final userId = const Uuid().v4();
+    final passwordHash = _hashPassword(password);
+
+    final user = UserModel(
+      userId: userId,
+      username: username,
+      passwordHash: passwordHash,
+      createdAt: DateTime.now(),
+    );
+
+    try {
+      await _db.collection('users').doc(userId).set(user.toMap());
+      return null; // success
+    } catch (e) {
+      return 'Failed to register: $e';
     }
   }
 
-  Future<String?> login({
-    required String email,
+  Future<String?> loginUser({
+    required String username,
     required String password,
   }) async {
-    try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return null;
-    } on FirebaseAuthException catch (e) {
-      return e.message;
-    }
+    final passwordHash = _hashPassword(password);
+
+    final query = await _db
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .where('passwordHash', isEqualTo: passwordHash)
+        .limit(1)
+        .get();
+
+    if (query.docs.isEmpty) return 'Invalid username or password';
+
+    // You may store session info here using Provider or SharedPreferences
+    return null;
   }
 
-  Future<void> logout() async {
-    await _auth.signOut();
+  Future<bool> _checkUsernameExists(String username) async {
+    final query = await _db
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .limit(1)
+        .get();
+    return query.docs.isNotEmpty;
   }
 
-  User? get currentUser => _auth.currentUser;
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    return sha256.convert(bytes).toString();
+  }
 }
