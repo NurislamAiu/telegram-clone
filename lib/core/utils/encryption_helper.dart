@@ -8,7 +8,7 @@ class EncryptionService {
   final IV iv;
 
   EncryptionService()
-      : key = Key.fromUtf8(dotenv.env['AES_KEY']!.padRight(32, '0')),
+      : key = Key.fromUtf8(dotenv.env['AES_SECRET']!.padRight(32, '0')),
         iv = IV.fromLength(16);
 
   String encrypt(String plainText) {

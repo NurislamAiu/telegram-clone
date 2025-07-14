@@ -1,55 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../models/user_model.dart';
-import '../../providers/auth_provider.dart';
+import '../../../models/user_model.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../services/user_service.dart';
 import '../../widgets/user_avatar.dart';
+import '../../../services/user_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<UserModel> users = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsers();
+  }
+
+  Future<void> fetchUsers() async {
+    final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
+    if (currentUser == null) return;
+    final result = await UserService().getAllUsersExcept(currentUser.id);
+    setState(() {
+      users = result;
+      isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currentUser = context.watch<AuthProvider>().user;
+    final currentUser = Provider.of<AuthProvider>(context).user;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chats"),
+        title: const Text('Chats'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: GestureDetector(
-              onTap: () {
-                // TODO: Перейти в профиль
-              },
-              child: UserAvatar(username: currentUser?.username ?? 'U'),
-            ),
-          ),
+          if (currentUser != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: GestureDetector(
+                onTap: () => context.push('/profile'),
+                child: UserAvatar(radius: 18, username: 'N',),
+              ),
+            )
         ],
       ),
-
-      // MOCK список чатов
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: 5,
-        separatorBuilder: (_, __) => const Divider(),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+        itemCount: users.length,
         itemBuilder: (context, index) {
+          final user = users[index];
           return ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.person)),
-            title: Text("Chat with User ${index + 1}"),
-            subtitle: const Text("Last message preview..."),
-            trailing: const Text("10:24 AM"),
-            onTap: () {
-              // TODO: Переход в чат
-            },
+            leading: UserAvatar(username: 'N',),
+            title: Text(user.username),
+            onTap: () => context.pushNamed(
+              'chat',
+              pathParameters: {
+                'userId': user.id,
+                'username': user.username,
+              },
+            ),
           );
         },
       ),
-
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Открыть экран "Новый чат"
-        },
-        shape: const CircleBorder(),
+        onPressed: () => context.push('/search'),
         child: const Icon(Icons.edit),
       ),
     );

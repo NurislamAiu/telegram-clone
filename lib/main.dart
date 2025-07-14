@@ -8,7 +8,7 @@ import 'providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp();
 
   final authProvider = AuthProvider();

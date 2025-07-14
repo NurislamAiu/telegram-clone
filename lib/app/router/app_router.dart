@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
+import '../../screens/chat/chat_screen.dart';
 import '../../screens/home/home_screen.dart';
 
 final AppRouter = _AppRouter();
@@ -38,6 +39,18 @@ class _AppRouter {
           path: '/home',
           name: 'home',
           builder: (context, state) => const HomeScreen(),
+        ),
+        GoRoute(
+          path: '/chat/:userId/:username',
+          name: 'chat',
+          builder: (context, state) {
+            final userId = state.pathParameters['userId']!;
+            final username = state.pathParameters['username']!;
+            return ChatScreen(
+              otherUserId: userId,
+              otherUsername: username,
+            );
+          },
         ),
       ],
     );
