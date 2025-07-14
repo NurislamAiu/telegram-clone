@@ -1,68 +1,91 @@
-// lib/services/auth_service.dart
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 import '../models/user_model.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class AuthService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final _firestore = FirebaseFirestore.instance;
 
-  Future<String?> registerUser({
+  /// Хэширование пароля
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  /// Проверка существования username
+  Future<bool> _checkUsernameExists(String username) async {
+    final result = await _firestore
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .limit(1)
+        .get();
+
+    return result.docs.isNotEmpty;
+  }
+
+  /// Регистрация
+  Future<dynamic> registerUser({
     required String username,
     required String password,
   }) async {
-    final usernameTaken = await _checkUsernameExists(username);
-    if (usernameTaken) return 'Username already taken';
+    final exists = await _checkUsernameExists(username);
+    if (exists) return "Username already exists";
 
-    final userId = const Uuid().v4();
-    final passwordHash = _hashPassword(password);
+    final id = const Uuid().v4();
+    final hashedPassword = _hashPassword(password);
 
-    final user = UserModel(
-      userId: userId,
+    final newUser = UserModel(
+      id: id,
       username: username,
-      passwordHash: passwordHash,
-      createdAt: DateTime.now(),
+      passwordHash: hashedPassword,
     );
 
     try {
-      await _db.collection('users').doc(userId).set(user.toMap());
-      return null; // success
+      await _firestore.collection('users').doc(id).set(newUser.toJson());
+      return newUser;
     } catch (e) {
-      return 'Failed to register: $e';
+      return "Registration failed: $e";
     }
   }
 
-  Future<String?> loginUser({
+  /// Логин
+  Future<dynamic> loginUser({
     required String username,
     required String password,
   }) async {
-    final passwordHash = _hashPassword(password);
+    final hashedPassword = _hashPassword(password);
 
-    final query = await _db
-        .collection('users')
-        .where('username', isEqualTo: username)
-        .where('passwordHash', isEqualTo: passwordHash)
-        .limit(1)
-        .get();
+    try {
+      final query = await _firestore
+          .collection('users')
+          .where('username', isEqualTo: username)
+          .where('password', isEqualTo: hashedPassword)
+          .limit(1)
+          .get();
 
-    if (query.docs.isEmpty) return 'Invalid username or password';
+      if (query.docs.isEmpty) {
+        return "Invalid credentials";
+      }
 
-    // You may store session info here using Provider or SharedPreferences
-    return null;
+      final userData = query.docs.first.data();
+      return UserModel.fromJson(userData);
+    } catch (e) {
+      return "Login failed: $e";
+    }
   }
 
-  Future<bool> _checkUsernameExists(String username) async {
-    final query = await _db
-        .collection('users')
-        .where('username', isEqualTo: username)
-        .limit(1)
-        .get();
-    return query.docs.isNotEmpty;
-  }
-
-  String _hashPassword(String password) {
-    final bytes = utf8.encode(password);
-    return sha256.convert(bytes).toString();
+  /// Получить пользователя по ID (для загрузки сессии)
+  Future<UserModel?> getUserById(String id) async {
+    try {
+      final doc = await _firestore.collection('users').doc(id).get();
+      if (doc.exists) {
+        return UserModel.fromJson(doc.data()!);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 }

@@ -1,33 +1,29 @@
-// lib/models/user_model.dart
-
 class UserModel {
-  final String userId;
+  final String id;
   final String username;
   final String passwordHash;
-  final DateTime createdAt;
 
   UserModel({
-    required this.userId,
+    required this.id,
     required this.username,
     required this.passwordHash,
-    required this.createdAt,
   });
 
-  Map<String, dynamic> toMap() {
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'] as String,
+      username: json['username'] as String,
+      passwordHash: json['passwordHash'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
+      'id': id,
       'username': username,
       'passwordHash': passwordHash,
-      'createdAt': createdAt.toIso8601String(),
     };
   }
 
-  factory UserModel.fromMap(Map<String, dynamic> map) {
-    return UserModel(
-      userId: map['userId'],
-      username: map['username'],
-      passwordHash: map['passwordHash'],
-      createdAt: DateTime.parse(map['createdAt']),
-    );
-  }
+
 }
