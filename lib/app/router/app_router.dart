@@ -8,6 +8,7 @@ import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
 import '../../screens/chat/chat_screen.dart';
 import '../../screens/home/home_screen.dart';
+import '../../screens/search/search_screen.dart';
 
 final AppRouter = _AppRouter();
 
@@ -41,14 +42,20 @@ class _AppRouter {
           builder: (context, state) => const HomeScreen(),
         ),
         GoRoute(
-          path: '/chat/:userId/:username',
+          path: '/search',
+          name: 'search',
+          builder: (context, state) => const SearchScreen(),
+        ),
+        GoRoute(
+          path: '/chat/:chatId',
           name: 'chat',
           builder: (context, state) {
-            final userId = state.pathParameters['userId']!;
-            final username = state.pathParameters['username']!;
+            final chatId = state.pathParameters['chatId']!;
+            final otherUsername = state.extra is Map ? (state.extra as Map)['otherUsername'] : 'Unknown';
+
             return ChatScreen(
-              otherUserId: userId,
-              otherUsername: username,
+              chatId: chatId,
+              otherUsername: otherUsername,
             );
           },
         ),

@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE6F0FA),
+      backgroundColor: const Color(0xFF272525),
       body: Stack(
         children: [
           _buildForm(context),
@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.lock_outline, size: 64, color: Colors.blueAccent),
+              const Icon(Icons.lock_outline, size: 64, color: Color(0xFF272525)),
               const SizedBox(height: 16),
               Text("Welcome Back", style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),

@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../core/utils/encryption_helper.dart';
+
 class MessageModel {
   final String senderId;
   final String receiverId;
   final String encryptedText;
   final DateTime timestamp;
+  String? decryptedText;
 
   MessageModel({
     required this.senderId,
@@ -15,8 +20,8 @@ class MessageModel {
     return {
       'senderId': senderId,
       'receiverId': receiverId,
-      'content': encryptedText,
-      'timestamp': timestamp.millisecondsSinceEpoch,
+      'encryptedText': encryptedText,
+      'timestamp': timestamp,
     };
   }
 
@@ -24,8 +29,13 @@ class MessageModel {
     return MessageModel(
       senderId: map['senderId'],
       receiverId: map['receiverId'],
-      encryptedText: map['content'],
-      timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
+      encryptedText: map['encryptedText'],
+      timestamp: (map['timestamp'] as Timestamp).toDate(),
     );
+  }
+
+  // 🔐 Метод для расшифровки текста
+  void decrypt(EncryptionService encryption) {
+    decryptedText = encryption.decrypt(encryptedText);
   }
 }

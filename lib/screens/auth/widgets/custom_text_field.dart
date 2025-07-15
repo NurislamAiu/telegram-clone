@@ -21,7 +21,7 @@ class CustomTextField extends StatelessWidget {
       obscureText: obscureText,
       style: const TextStyle(fontSize: 16),
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        prefixIcon: Icon(icon, color: Color(0xFF272525)),
         hintText: hintText,
         filled: true,
         fillColor: Colors.white,

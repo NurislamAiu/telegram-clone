@@ -24,7 +24,7 @@ class SwitchAuthText extends StatelessWidget {
             TextSpan(
               text: actionText,
               style: const TextStyle(
-                color: Colors.blueAccent,
+                color: Color(0xFF272525),
                 fontWeight: FontWeight.bold,
               ),
             ),

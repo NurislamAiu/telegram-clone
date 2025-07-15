@@ -23,7 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE6F0FA),
+      backgroundColor: const Color(0xFF272525),
       body: Stack(
         children: [
           _buildForm(context),
@@ -57,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.person_add_alt_1, size: 64, color: Colors.blueAccent),
+              const Icon(Icons.person_add_alt_1, size: 64, color: Color(0xFF272525)),
               const SizedBox(height: 16),
               Text("Create Account", style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
