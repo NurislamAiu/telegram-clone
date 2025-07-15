@@ -38,4 +38,6 @@ class MessageModel {
   void decrypt(EncryptionService encryption) {
     decryptedText = encryption.decrypt(encryptedText);
   }
+
+
 }

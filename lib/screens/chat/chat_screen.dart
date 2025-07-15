@@ -6,6 +6,7 @@ import '../../models/message_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/chat_service.dart';
 import '../auth/widgets/custom_text_field.dart';
+import '../../core/utils/encryption_helper.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -24,6 +25,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _messageController = TextEditingController();
   final _chatService = ChatService();
+  final _encryption = EncryptionService();
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.black,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/home')
+          onPressed: () => context.go('/home'),
         ),
         title: Text(
           widget.otherUsername,
@@ -49,12 +51,26 @@ class _ChatScreenState extends State<ChatScreen> {
             child: StreamBuilder<List<MessageModel>>(
               stream: _chatService.getMessages(widget.chatId),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
+                debugPrint("📡 ChatScreen: StreamBuilder triggered");
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  debugPrint("⏳ Waiting for messages stream...");
                   return const Center(
                       child: CircularProgressIndicator(color: Colors.white));
                 }
 
-                final messages = snapshot.data!;
+                if (snapshot.hasError) {
+                  debugPrint("❌ Error in messages stream: ${snapshot.error}");
+                  return const Center(
+                    child: Text(
+                      'Failed to load messages',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+
+                final messages = snapshot.data ?? [];
+
                 return ListView.builder(
                   reverse: true,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -62,6 +78,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemBuilder: (context, index) {
                     final message = messages[index];
                     final isMe = message.senderId == currentUsername;
+
+                    try {
+                      message.decrypt(_encryption);
+                    } catch (e) {
+                      debugPrint("❌ Error decrypting message: $e");
+                      message.decryptedText = '[Ошибка дешифровки]';
+                    }
 
                     return Align(
                       alignment: isMe
@@ -77,10 +100,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               ? Colors.deepPurpleAccent
                               : Colors.grey.shade800,
                           borderRadius: BorderRadius.only(
-                            topLeft:
-                            Radius.circular(isMe ? 16 : 4),
-                            topRight:
-                            Radius.circular(isMe ? 4 : 16),
+                            topLeft: Radius.circular(isMe ? 16 : 4),
+                            topRight: Radius.circular(isMe ? 4 : 16),
                             bottomLeft: const Radius.circular(16),
                             bottomRight: const Radius.circular(16),
                           ),

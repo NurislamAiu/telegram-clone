@@ -12,14 +12,26 @@ class EncryptionService {
         iv = IV.fromLength(16);
 
   String encrypt(String plainText) {
+    final iv = IV.fromSecureRandom(16); // ✅ Генерируем уникальный IV
     final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
     final encrypted = encrypter.encrypt(plainText, iv: iv);
-    return encrypted.base64;
+
+    // Возвращаем IV и зашифрованный текст вместе, через ::
+    return '${iv.base64}::${encrypted.base64}';
   }
 
-  String decrypt(String encryptedText) {
-    final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
-    final decrypted = encrypter.decrypt64(encryptedText, iv: iv);
-    return decrypted;
+  String decrypt(String combined) {
+    try {
+      final parts = combined.split('::');
+      if (parts.length != 2) throw Exception("Invalid encrypted format");
+
+      final iv = IV.fromBase64(parts[0]);
+      final encryptedText = parts[1];
+      final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
+      return encrypter.decrypt64(encryptedText, iv: iv);
+    } catch (e) {
+      print('❌ Decryption error: $e');
+      return '❌ decryption failed';
+    }
   }
 }

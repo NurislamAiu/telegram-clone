@@ -19,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final username = context.read<AuthProvider>().user?.username ?? '';
-    print("🔍 didChangeDependencies — username: $username");
     _chatsFuture = ChatService().getUserChats(username);
   }
 
