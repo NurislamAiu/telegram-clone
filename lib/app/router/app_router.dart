@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:telegram_clone/screens/profile/profile_screen.dart';
 import '../../providers/auth_provider.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
@@ -45,6 +46,11 @@ class _AppRouter {
           path: '/search',
           name: 'search',
           builder: (context, state) => const SearchScreen(),
+        ),
+        GoRoute(
+          path: '/profile',
+          name: 'profile',
+          builder: (context, state) => const ProfileScreen(),
         ),
         GoRoute(
           path: '/chat/:chatId',

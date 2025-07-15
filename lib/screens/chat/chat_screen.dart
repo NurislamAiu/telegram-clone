@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/message_model.dart';
@@ -29,8 +30,18 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUsername = context.watch<AuthProvider>().user!.username;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0D0D0D),
       appBar: AppBar(
-        title: Text(widget.otherUsername),
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home')
+        ),
+        title: Text(
+          widget.otherUsername,
+          style: const TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
@@ -39,33 +50,46 @@ class _ChatScreenState extends State<ChatScreen> {
               stream: _chatService.getMessages(widget.chatId),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                      child: CircularProgressIndicator(color: Colors.white));
                 }
 
                 final messages = snapshot.data!;
                 return ListView.builder(
                   reverse: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
                     final isMe = message.senderId == currentUsername;
 
                     return Align(
-                      alignment:
-                      isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: isMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       child: Container(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                        margin: const EdgeInsets.symmetric(vertical: 6),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
+                        constraints: const BoxConstraints(maxWidth: 280),
                         decoration: BoxDecoration(
-                          color: isMe ? Colors.blueAccent : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(16),
+                          color: isMe
+                              ? Colors.deepPurpleAccent
+                              : Colors.grey.shade800,
+                          borderRadius: BorderRadius.only(
+                            topLeft:
+                            Radius.circular(isMe ? 16 : 4),
+                            topRight:
+                            Radius.circular(isMe ? 4 : 16),
+                            bottomLeft: const Radius.circular(16),
+                            bottomRight: const Radius.circular(16),
+                          ),
                         ),
                         child: Text(
                           message.decryptedText ?? '',
-                          style: TextStyle(
-                            color: isMe ? Colors.white : Colors.black87,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
                           ),
                         ),
                       ),
@@ -75,7 +99,7 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
-          const Divider(height: 1),
+          const Divider(height: 1, color: Colors.white24),
           _buildInput(currentUsername),
         ],
       ),
@@ -83,8 +107,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInput(String senderUsername) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
+    return Container(
+      color: const Color(0xFF1A1A1A),
+      padding: const EdgeInsets.only(right: 12, top: 12, left: 12, bottom: 30),
       child: Row(
         children: [
           Expanded(
@@ -96,9 +121,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.send, color: Colors.blueAccent),
+            icon: const Icon(Icons.send),
+            color: Colors.deepPurpleAccent,
             onPressed: () => _sendMessage(senderUsername),
-          )
+          ),
         ],
       ),
     );

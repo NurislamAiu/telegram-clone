@@ -55,7 +55,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final chatId = ChatService.generateChatId(current.username, other.username);
     await ChatService().createChatIfNotExists(current.username, other.username);
     if (!mounted) return;
-    context.go('/chat/$chatId', extra: {
+    context.push('/chat/$chatId', extra: {
       'chatId': chatId,
       'otherUsername': other.username,
     });
@@ -64,31 +64,63 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Search User")),
+      backgroundColor: Colors.black, // 💯 Full black background
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: const Text("Search User", style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: _controller,
-              decoration: const InputDecoration(
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
                 hintText: "Enter username",
-                suffixIcon: Icon(Icons.search),
+                hintStyle: const TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Colors.grey[900], // Чёрный с лёгкой тенью внутри поля
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: _search,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
               onSubmitted: (_) => _search(),
             ),
             const SizedBox(height: 16),
-            if (_loading) const CircularProgressIndicator(),
-            if (_error != null) Text(_error!, style: const TextStyle(color: Colors.red)),
+            if (_loading)
+              const CircularProgressIndicator(color: Colors.white),
+            if (_error != null)
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+              ),
             if (_foundUser != null)
               ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.person)),
-                title: Text(_foundUser!.username),
-                trailing: ElevatedButton(
-                  child: const Text("Chat"),
+                tileColor: Colors.grey[900],
+                leading: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    _foundUser!.username[0].toUpperCase(),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.black),
+                  ),
+                ),
+                title: Text(
+                  _foundUser!.username,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.send, color: Colors.blueAccent),
                   onPressed: () => _startChat(_foundUser!),
                 ),
-              )
+              ),
           ],
         ),
       ),

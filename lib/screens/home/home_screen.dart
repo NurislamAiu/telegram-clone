@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../models/chat_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/chat_service.dart';
-import '../../widgets/user_avatar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,19 +28,18 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = context.watch<AuthProvider>().user!;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0D0D0D),
       appBar: AppBar(
-        title: const Text("Chats"),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: const Text("Chats", style: TextStyle(color: Colors.white)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await context.read<AuthProvider>().logout();
-              if (context.mounted) context.go('/login');
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: UserAvatar(username: user.username),
+          GestureDetector(
+            onTap: () => context.push('/profile'),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: _buildAvatar(user.username),
+            ),
           ),
         ],
       ),
@@ -49,10 +47,12 @@ class _HomeScreenState extends State<HomeScreen> {
         future: _chatsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Colors.white));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No chats found."));
+            return const Center(
+              child: Text("No chats found.", style: TextStyle(color: Colors.white70)),
+            );
           }
 
           final chats = snapshot.data!;
@@ -64,22 +64,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     (name) => name != user.username,
                 orElse: () => 'Unknown',
               );
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.person)),
-                title: Text(otherUsername),
-                subtitle: Text(chat.lastMessage),
-                trailing: Text(
-                  TimeOfDay.fromDateTime(chat.updatedAt).format(context),
+
+              return Card(
+                color: const Color(0xFF1A1A1A),
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: ListTile(
+                  leading: _buildAvatar(otherUsername),
+                  title: Text(
+                    otherUsername,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    chat.lastMessage,
+                    style: const TextStyle(color: Colors.white70),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Text(
+                    TimeOfDay.fromDateTime(chat.updatedAt).format(context),
+                    style: const TextStyle(color: Colors.white38),
+                  ),
+                  onTap: () {
+                    context.go(
+                      '/chat/${chat.id}',
+                      extra: {'otherUsername': otherUsername, 'chatId': chat.id},
+                    );
+                  },
                 ),
-                onTap: () {
-                  context.go(
-                    '/chat/${chat.id}',
-                    extra: {
-                      'otherUsername': otherUsername,
-                      'chatId': chat.id,
-                    },
-                  );
-                },
               );
             },
           );
@@ -89,7 +101,20 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           context.push('/search');
         },
-        child: const Icon(Icons.message),
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.message, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildAvatar(String username) {
+    final initial = username.isNotEmpty ? username[0].toUpperCase() : '?';
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: Colors.deepPurple,
+      child: Text(
+        initial,
+        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
     );
   }
